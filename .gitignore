@@ -1,3 +1,7 @@
+#debug
+rest.http
+
+
 # Logs
 logs
 *.log

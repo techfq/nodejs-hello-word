@@ -13,11 +13,14 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "start": "node app.js",
+    "start": "nodemon app.js",
     "test": "mocha --exit test/*.test.js"
   },
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "helmet": "^5.1.0",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.18"
   },
   "devDependencies": {
     "mocha": "^9.0.0",
