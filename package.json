@@ -5,10 +5,6 @@
   "private": true,
   "license": "Apache-2.0",
   "author": "Google Inc.",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/GoogleCloudPlatform/nodejs-docs-samples.git"
-  },
   "engines": {
     "node": ">=14.0.0"
   },
@@ -17,7 +13,11 @@
     "test": "mocha --exit test/*.test.js"
   },
   "dependencies": {
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
     "express": "^4.17.1",
+    "firebase": "^8.10.0",
     "helmet": "^5.1.0",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.18"
