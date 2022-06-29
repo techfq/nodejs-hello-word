@@ -192,6 +192,21 @@ const userRate = async (req, res, next) => {
    }
 };
 
+const getUser = async (req, res, next) => {
+   try {
+      const id = req.params.id;
+      const user = await firestore.collection("users").doc(id);
+      const userData = await user.get();
+      if (!userData.exists) {
+         res.status(404).send("User with the given ID not found");
+      } else {
+         res.status(200).send(userData.data());
+      }
+   } catch (error) {
+      res.status(400).send(error.message);
+   }
+};
+
 const deleteProject = async (req, res, next) => {
    try {
       const id = req.params.id;
@@ -214,4 +229,5 @@ module.exports = {
    requestRate,
    tellerCheckQueue,
    userRate,
+   getUser,
 };

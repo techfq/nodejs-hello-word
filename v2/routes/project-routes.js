@@ -11,6 +11,7 @@ const {
    requestRate,
    tellerCheckQueue,
    userRate,
+   getUser,
 } = require("../controllers/projectController");
 
 const router = express.Router();
@@ -27,6 +28,7 @@ router.put("/project/:id/tellercheckqueue", tellerCheckQueue);
 // USERS
 router.put("/project/:id/getnumber", getNumber);
 router.get("/user/:id/:rate", userRate);
+router.get("/user/:id", getUser);
 // router.delete("/project/:id", deleteProject);
 
 module.exports = {
