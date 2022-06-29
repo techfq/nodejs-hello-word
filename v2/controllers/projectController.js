@@ -24,19 +24,7 @@ const getAllProjects = async (req, res, next) => {
          res.status(404).send("No project record found");
       } else {
          data.forEach((doc) => {
-            const project = new Project(
-               doc.id,
-               doc.data().firstName,
-               doc.data().lastName,
-               doc.data().fatherName,
-               doc.data().class,
-               doc.data().age,
-               doc.data().phoneNumber,
-               doc.data().subject,
-               doc.data().year,
-               doc.data().semester,
-               doc.data().status
-            );
+            const project = new Project(doc.id, doc.data().name, doc.data().information.address);
             projectsArray.push(project);
          });
          res.send(projectsArray);
@@ -72,6 +60,25 @@ const updateProject = async (req, res, next) => {
       res.status(400).send(error.message);
    }
 };
+const resetProject = async (req, res, next) => {
+   try {
+      const id = req.params.id;
+      const project = await firestore.collection("projects").doc(id);
+      const doc = await project.get();
+      if (!doc.exists) {
+         res.status(404).send("Project with the given ID not found");
+      } else {
+         let runtime = doc.data().runtime;
+         runtime.current = 0;
+         runtime.waiting = 0;
+         runtime.queue = [];
+         await project.update({ runtime: runtime });
+         res.send("Project record updated successfuly");
+      }
+   } catch (error) {
+      res.status(400).send(error.message);
+   }
+};
 
 const getNumber = async (req, res, next) => {
    try {
@@ -92,7 +99,7 @@ const getNumber = async (req, res, next) => {
          await firestore
             .collection("users")
             .doc(user.id)
-            .update({ ticketNumber: _runtime.waiting, token: user.id, current: _runtime.current });
+            .update({ ticketNumber: _runtime.waiting, token: user.id, current: _runtime.current, timeIn: Date.now() });
          res.send({ ticketNumber: _runtime.waiting, token: user.id, current: _runtime.current });
       }
    } catch (error) {
@@ -103,8 +110,35 @@ const getNumber = async (req, res, next) => {
 const tellerCall = async (req, res, next) => {
    try {
       const id = req.params.id;
+      const userID = req.params.userId;
       const data = req.body;
-      const user = await firestore.collection("users");
+      const user = await firestore.collection("users").doc(userID);
+      const userData = await user.get();
+      const project = await firestore.collection("projects").doc(id);
+      const prjData = await project.get();
+      if (!prjData.exists) {
+         res.status(404).send("Project with the given ID not found");
+      } else {
+         if (!userData.exists) {
+            res.status(404).send("User with the given ID not found");
+         } else {
+            let _runtime = prjData.data().runtime;
+            _runtime.current = userData.data().ticketNumber;
+            await project.update({ runtime: _runtime });
+            data["timeCall"] = Date.now();
+            await user.update(data);
+            res.send({ runtime: _runtime, user: userData.data() });
+         }
+      }
+   } catch (error) {
+      res.status(400).send(error.message);
+   }
+};
+
+const tellerCheckQueue = async (req, res, next) => {
+   try {
+      const id = req.params.id;
+      const data = req.body;
 
       const project = await firestore.collection("projects").doc(id);
       const prjData = await project.get();
@@ -113,16 +147,45 @@ const tellerCall = async (req, res, next) => {
       } else {
          let _runtime = prjData.data().runtime;
          let active = _runtime.queue.shift();
-         const userData = await user.doc(active).get();
-         if (!userData.exists) {
-            await project.update({ runtime: _runtime });
-            res.status(404).send("User with the given ID not found");
+         if (!active) {
+            res.status(404).send("No queue");
          } else {
-            _runtime.current = userData.data().ticketNumber;
-            await user.doc(active).update(data);
             await project.update({ runtime: _runtime });
-            res.send({ runtime: _runtime, user: userData.data() });
+            res.send({ active: active, runtime: _runtime });
          }
+      }
+   } catch (error) {
+      res.status(400).send(error.message);
+   }
+};
+
+const requestRate = async (req, res, next) => {
+   try {
+      const id = req.params.id;
+      const user = await firestore.collection("users").doc(id);
+      const userData = await user.get();
+      if (!userData.exists) {
+         res.status(404).send("User with the given ID not found");
+      } else {
+         await user.update({ timeOut: Date.now() });
+         res.status(200).send("Success");
+      }
+   } catch (error) {
+      res.status(400).send(error.message);
+   }
+};
+
+const userRate = async (req, res, next) => {
+   try {
+      const id = req.params.id;
+      const rate = parseInt(req.params.rate);
+      const user = await firestore.collection("users").doc(id);
+      const userData = await user.get();
+      if (!userData.exists) {
+         res.status(404).send("User with the given ID not found");
+      } else {
+         await user.update({ rate: rate });
+         res.status(200).send("Success");
       }
    } catch (error) {
       res.status(400).send(error.message);
@@ -144,7 +207,11 @@ module.exports = {
    getAllProjects,
    getProject,
    updateProject,
+   resetProject,
    deleteProject,
    getNumber,
    tellerCall,
+   requestRate,
+   tellerCheckQueue,
+   userRate,
 };

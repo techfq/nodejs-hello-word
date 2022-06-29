@@ -5,18 +5,28 @@ const {
    getProject,
    updateProject,
    deleteProject,
+   resetProject,
    getNumber,
    tellerCall,
+   requestRate,
+   tellerCheckQueue,
+   userRate,
 } = require("../controllers/projectController");
 
 const router = express.Router();
 
-router.post("/project", addProject);
 router.get("/projects", getAllProjects);
 router.get("/project/:id", getProject);
+router.post("/project", addProject);
 router.put("/project/:id", updateProject);
+router.get("/project/reset/:id", resetProject);
+// FOR TELLER
+router.get("/user/request-rate/:id", requestRate);
+router.put("/project/:id/tellerCall/:userId", tellerCall);
+router.put("/project/:id/tellercheckqueue", tellerCheckQueue);
+// USERS
 router.put("/project/:id/getnumber", getNumber);
-router.put("/project/:id/tellerCall", tellerCall);
+router.get("/user/:id/:rate", userRate);
 // router.delete("/project/:id", deleteProject);
 
 module.exports = {
