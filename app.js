@@ -17,10 +17,14 @@ app.use(helmet());
 app.use(morgan("common"));
 app.use(bodyParser.json());
 
+// view engine setup
+app.set("view engine", "ejs");
+
+var sysStart = new Date().toLocaleString("en-vi");
+
 app.get("/", async (req, res) => {
-   res.status(200)
-      .sendFile(__dirname + "/index.html")
-      .end();
+   const nowStart = new Date().toLocaleString("en-vi");
+   res.render("index", { author: "tech.fqs", start: sysStart, now: nowStart });
 });
 
 app.use("/api/v1", studentRoutes.routes);
